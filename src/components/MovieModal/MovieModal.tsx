@@ -1,7 +1,7 @@
+import { useEffect, type MouseEvent } from "react";
+import { createPortal } from "react-dom";
 import type { Movie } from "../../types/movie";
 import styles from "./MovieModal.module.css";
-import { useEffect } from "react";
-import { createPortal } from "react-dom";
 
 interface MovieModalProps {
   movie: Movie;
@@ -11,27 +11,33 @@ interface MovieModalProps {
 export default function MovieModal({ movie, onClose }: MovieModalProps) {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    const handleClickOutside = (e: MouseEvent) => {
-      if ((e.target as HTMLElement).classList.contains(styles.backdrop)) {
+      if (e.key === "Escape") {
         onClose();
       }
     };
 
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleEsc);
-    window.addEventListener("click", handleClickOutside);
+    document.addEventListener("keydown", handleEsc);
 
     return () => {
-      document.body.style.overflow = "auto";
-      window.removeEventListener("keydown", handleEsc);
-      window.removeEventListener("click", handleClickOutside);
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", handleEsc);
     };
   }, [onClose]);
 
+  const handleBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return createPortal(
-    <div className={styles.backdrop} role="dialog" aria-modal="true">
+    <div
+      className={styles.backdrop}
+      role="dialog"
+      aria-modal="true"
+      onClick={handleBackdropClick}
+    >
       <div className={styles.modal}>
         <button
           className={styles.closeButton}
@@ -40,11 +46,13 @@ export default function MovieModal({ movie, onClose }: MovieModalProps) {
         >
           &times;
         </button>
+
         <img
           src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
           alt={movie.title}
           className={styles.image}
         />
+
         <div className={styles.content}>
           <h2>{movie.title}</h2>
           <p>{movie.overview}</p>
